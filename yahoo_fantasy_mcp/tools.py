@@ -201,6 +201,35 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_matchups(self, league_id: str, week: Optional[int] = None) -> Dict[str, Any]:
+        """Get matchup data for a given week.
+
+        Args:
+            league_id: The league ID to query
+            week: Week number to query (optional, defaults to current week)
+
+        Returns:
+            Dictionary containing matchup details as key/value pairs.
+        """
+        logger.info(f"Getting matchups for league: {league_id}, week: {week}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            matchups = league.matchups(week=week)
+
+            return {
+                "league_id": league_id,
+                "week": week,
+                "matchups": matchups
+            }
+        except Exception as e:
+            logger.error(f"Error getting matchups for league {league_id}, week {week}: {e}")
+            return {
+                "league_id": league_id,
+                "week": week,
+                "matchups": None,
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

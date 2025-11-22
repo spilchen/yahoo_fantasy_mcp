@@ -142,6 +142,34 @@ class TestYahooFantasyToolsIntegration:
             print(f"\nSuccessfully retrieved end week: {end_week}")
 
     @pytest.mark.asyncio
+    async def test_get_matchups(self, skip_if_no_credentials, tools, league_id):
+        """Test get_matchups with real API."""
+        # Test without specifying week (should default to current week).
+        result = await tools.get_matchups(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "week" in result
+        assert "matchups" in result
+
+        # If no error, we should have matchups data.
+        if "error" not in result:
+            matchups = result["matchups"]
+            assert matchups is not None
+            assert isinstance(matchups, dict)
+
+            print(f"\nSuccessfully retrieved matchups for week {result.get('week', 'current')}")
+
+        # Test with specific week.
+        result_week_1 = await tools.get_matchups(league_id, week=1)
+        assert "league_id" in result_week_1
+        assert result_week_1["week"] == 1
+        assert "matchups" in result_week_1
+
+        if "error" not in result_week_1:
+            print(f"Successfully retrieved matchups for week 1")
+
+    @pytest.mark.asyncio
     async def test_get_free_agents(self, skip_if_no_credentials, tools, league_id):
         """Test get_free_agents with real API."""
         # Test with QB position.

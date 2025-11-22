@@ -230,6 +230,33 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_positions(self, league_id: str) -> Dict[str, Any]:
+        """Get the positions used in the league.
+
+        Args:
+            league_id: The league ID to query
+
+        Returns:
+            Dictionary containing positions used in the league. Each key is a
+            position, with count and position_type as the values.
+        """
+        logger.info(f"Getting positions for league: {league_id}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            positions = league.positions()
+
+            return {
+                "league_id": league_id,
+                "positions": positions
+            }
+        except Exception as e:
+            logger.error(f"Error getting positions for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "positions": None,
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

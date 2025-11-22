@@ -170,6 +170,33 @@ class TestYahooFantasyToolsIntegration:
             print(f"Successfully retrieved matchups for week 1")
 
     @pytest.mark.asyncio
+    async def test_get_positions(self, skip_if_no_credentials, tools, league_id):
+        """Test get_positions with real API."""
+        result = await tools.get_positions(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "positions" in result
+
+        # If no error, we should have positions data.
+        if "error" not in result:
+            positions = result["positions"]
+            assert positions is not None
+            assert isinstance(positions, dict)
+
+            # Verify that at least one position exists.
+            assert len(positions) > 0
+
+            # Verify structure of positions - each should have a count.
+            for position, details in positions.items():
+                assert isinstance(details, dict)
+                assert "count" in details
+                # position_type is optional (e.g., BN and IR don't have it).
+
+            print(f"\nSuccessfully retrieved {len(positions)} positions")
+            print(f"Sample positions: {list(positions.keys())[:5]}")
+
+    @pytest.mark.asyncio
     async def test_get_free_agents(self, skip_if_no_credentials, tools, league_id):
         """Test get_free_agents with real API."""
         # Test with QB position.

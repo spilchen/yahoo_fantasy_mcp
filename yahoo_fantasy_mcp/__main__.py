@@ -5,7 +5,33 @@ import os
 import sys
 import argparse
 from pathlib import Path
+from mcp.server.stdio import stdio_server
 from .server import create_server
+
+
+async def run_server(
+    client_id: str = None,
+    client_secret: str = None,
+    oauth2_file: str = None
+):
+    """Run the MCP server with stdio transport.
+
+    Args:
+        client_id: Yahoo API client ID (for env var auth)
+        client_secret: Yahoo API client secret (for env var auth)
+        oauth2_file: Path to oauth2.json file (alternative auth method)
+    """
+    async with stdio_server() as (read_stream, write_stream):
+        server = create_server(
+            client_id=client_id,
+            client_secret=client_secret,
+            oauth2_file=oauth2_file
+        )
+        await server.run(
+            read_stream,
+            write_stream,
+            server.create_initialization_options()
+        )
 
 
 def main():
@@ -25,7 +51,7 @@ def main():
     # Try oauth2.json file first, then fall back to environment variables.
     if oauth2_file.exists():
         print(f"Using OAuth credentials from {oauth2_file}", file=sys.stderr)
-        server = create_server(oauth2_file=str(oauth2_file))
+        asyncio.run(run_server(oauth2_file=str(oauth2_file)))
     else:
         # Check for environment variables.
         client_id = os.getenv("YAHOO_CLIENT_ID")
@@ -43,9 +69,7 @@ def main():
             sys.exit(1)
 
         print("Using OAuth credentials from environment variables", file=sys.stderr)
-        server = create_server(client_id=client_id, client_secret=client_secret)
-
-    asyncio.run(server.run())
+        asyncio.run(run_server(client_id=client_id, client_secret=client_secret))
 
 
 if __name__ == "__main__":

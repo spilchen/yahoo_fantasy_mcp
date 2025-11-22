@@ -73,6 +73,27 @@ class TestYahooFantasyToolsIntegration:
             print(f"\nSuccessfully retrieved team key: {team_key}")
 
     @pytest.mark.asyncio
+    async def test_get_current_week(self, skip_if_no_credentials, tools, league_id):
+        """Test get_current_week with real API."""
+        result = await tools.get_current_week(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "current_week" in result
+
+        # If no error, we should have a current week number.
+        if "error" not in result:
+            current_week = result["current_week"]
+            assert current_week is not None
+            assert isinstance(current_week, int)
+
+            # Week number should be positive and reasonable (1-18 for most leagues).
+            assert current_week > 0
+            assert current_week <= 20
+
+            print(f"\nSuccessfully retrieved current week: {current_week}")
+
+    @pytest.mark.asyncio
     async def test_get_league_standings(self, skip_if_no_credentials, tools, league_id):
         """Test get_league_standings with real API."""
         result = await tools.get_league_standings(league_id)

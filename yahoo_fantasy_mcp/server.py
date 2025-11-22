@@ -51,6 +51,20 @@ def create_server(
                 }
             ),
             Tool(
+                name="get_current_week",
+                description="Get the current week number of the league",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "league_id": {
+                            "type": "string",
+                            "description": "The league ID to query"
+                        }
+                    },
+                    "required": ["league_id"]
+                }
+            ),
+            Tool(
                 name="get_league_standings",
                 description="Get current standings for a fantasy league",
                 inputSchema={
@@ -162,6 +176,8 @@ def create_server(
         try:
             if name == "get_team_key":
                 result = await tools.get_team_key(arguments["league_id"])
+            elif name == "get_current_week":
+                result = await tools.get_current_week(arguments["league_id"])
             elif name == "get_league_standings":
                 result = await tools.get_league_standings(arguments["league_id"])
             elif name == "get_team_roster":

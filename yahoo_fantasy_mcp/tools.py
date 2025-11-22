@@ -123,6 +123,32 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_current_week(self, league_id: str) -> Dict[str, Any]:
+        """Get the current week number of the league.
+
+        Args:
+            league_id: The league ID to query
+
+        Returns:
+            Dictionary containing the current week number.
+        """
+        logger.info(f"Getting current week for league: {league_id}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            current_week = league.current_week()
+
+            return {
+                "league_id": league_id,
+                "current_week": current_week
+            }
+        except Exception as e:
+            logger.error(f"Error getting current week for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "current_week": None,
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

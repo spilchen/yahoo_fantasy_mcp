@@ -120,9 +120,38 @@ export YAHOO_LEAGUE_ID=423.l.123456
 
 ### As an MCP Server
 
-#### With oauth2.json file (default)
+This server uses the **stdio transport** protocol, communicating via standard input/output streams. It does not listen on any network port.
 
-Add to your MCP client configuration (e.g., Claude Desktop):
+#### Transport Type
+
+- **Type**: stdio (standard input/output)
+- **Protocol**: The server reads JSON-RPC messages from stdin and writes responses to stdout
+- **Connection**: Invoked as a subprocess by the MCP client
+
+#### Required Environment Variables
+
+The server requires the following environment variable to be set:
+
+- `YAHOO_LEAGUE_ID` - The ID of your Yahoo Fantasy league (e.g., "423.l.123456")
+
+#### Optional Environment Variables
+
+Depending on your authentication method, you may need:
+
+- `YAHOO_CLIENT_ID` - Your Yahoo API consumer key (if not using oauth2.json)
+- `YAHOO_CLIENT_SECRET` - Your Yahoo API consumer secret (if not using oauth2.json)
+
+#### Command-Line Arguments
+
+- `--oauth2-file <path>` - Path to oauth2.json file (default: "oauth2.json" in current directory)
+
+#### MCP Client Configuration
+
+The server should be configured in your MCP client as a stdio server. Below are example configurations for common MCP clients.
+
+##### With oauth2.json file (recommended)
+
+The server will automatically look for `oauth2.json` in the current working directory.
 
 ```json
 {
@@ -139,7 +168,7 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 }
 ```
 
-Or specify a custom path:
+Or specify a custom path to the oauth2.json file:
 
 ```json
 {
@@ -155,7 +184,9 @@ Or specify a custom path:
 }
 ```
 
-#### With environment variables
+##### With environment variables
+
+If you don't have an oauth2.json file, you can provide credentials via environment variables:
 
 ```json
 {
@@ -173,7 +204,16 @@ Or specify a custom path:
 }
 ```
 
-### Standalone
+#### Important Notes
+
+- The server must be able to find either the `oauth2.json` file or the environment variables for authentication.
+- If using `oauth2.json`, ensure the `cwd` (current working directory) is set to the directory containing the file, or use the `--oauth2-file` argument to specify the full path.
+- The server will automatically refresh OAuth tokens as needed.
+- On first run with environment variables, you'll need to complete the OAuth flow via browser.
+
+### Standalone Testing
+
+You can test the server standalone to verify it's working correctly:
 
 ```bash
 # Using oauth2.json in current directory (default)
@@ -188,6 +228,8 @@ python -m yahoo_fantasy_mcp --oauth2-file /path/to/oauth2.json
 export YAHOO_LEAGUE_ID=423.l.123456
 YAHOO_CLIENT_ID=your_key YAHOO_CLIENT_SECRET=your_secret python -m yahoo_fantasy_mcp
 ```
+
+Note: When run standalone without an MCP client, the server will wait for JSON-RPC messages on stdin. This is primarily useful for testing that the server starts correctly and authentication works.
 
 ## Available Tools
 

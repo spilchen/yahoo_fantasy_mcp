@@ -149,6 +149,32 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_edit_date(self, league_id: str) -> Dict[str, Any]:
+        """Get the next date when lineups can be edited.
+
+        Args:
+            league_id: The league ID to query
+
+        Returns:
+            Dictionary containing the edit date (roster deadline).
+        """
+        logger.info(f"Getting edit date for league: {league_id}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            edit_date = league.edit_date()
+
+            return {
+                "league_id": league_id,
+                "edit_date": edit_date.isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting edit date for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "edit_date": None,
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

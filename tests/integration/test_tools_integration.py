@@ -94,6 +94,33 @@ class TestYahooFantasyToolsIntegration:
             print(f"\nSuccessfully retrieved current week: {current_week}")
 
     @pytest.mark.asyncio
+    async def test_get_edit_date(self, skip_if_no_credentials, tools, league_id):
+        """Test get_edit_date with real API."""
+        result = await tools.get_edit_date(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "edit_date" in result
+
+        # If no error, we should have an edit date.
+        if "error" not in result:
+            edit_date = result["edit_date"]
+            assert edit_date is not None
+            assert isinstance(edit_date, str)
+
+            # Edit date should be in ISO format (YYYY-MM-DD).
+            import datetime
+            parsed_date = datetime.date.fromisoformat(edit_date)
+            assert parsed_date is not None
+
+            # Edit date should be a reasonable date (within a year from now).
+            today = datetime.date.today()
+            one_year_from_now = today + datetime.timedelta(days=365)
+            assert today <= parsed_date <= one_year_from_now
+
+            print(f"\nSuccessfully retrieved edit date: {edit_date}")
+
+    @pytest.mark.asyncio
     async def test_get_league_standings(self, skip_if_no_credentials, tools, league_id):
         """Test get_league_standings with real API."""
         result = await tools.get_league_standings(league_id)

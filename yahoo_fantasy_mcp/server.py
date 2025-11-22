@@ -37,6 +37,20 @@ def create_server(
         """List available tools."""
         return [
             Tool(
+                name="get_team_key",
+                description="Get the team key for the logged in user's team in a league",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "league_id": {
+                            "type": "string",
+                            "description": "The league ID to query"
+                        }
+                    },
+                    "required": ["league_id"]
+                }
+            ),
+            Tool(
                 name="get_league_standings",
                 description="Get current standings for a fantasy league",
                 inputSchema={
@@ -146,7 +160,9 @@ def create_server(
             List of text content results
         """
         try:
-            if name == "get_league_standings":
+            if name == "get_team_key":
+                result = await tools.get_team_key(arguments["league_id"])
+            elif name == "get_league_standings":
                 result = await tools.get_league_standings(arguments["league_id"])
             elif name == "get_team_roster":
                 result = await tools.get_team_roster(arguments["team_key"])

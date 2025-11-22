@@ -50,6 +50,29 @@ class TestYahooFantasyToolsIntegration:
     """Integration tests for Yahoo Fantasy API tools."""
 
     @pytest.mark.asyncio
+    async def test_get_team_key(self, skip_if_no_credentials, tools, league_id):
+        """Test get_team_key with real API."""
+        result = await tools.get_team_key(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "team_key" in result
+
+        # If no error, we should have a team key.
+        if "error" not in result:
+            team_key = result["team_key"]
+            assert team_key is not None
+            assert isinstance(team_key, str)
+
+            # Team key should start with the league_id.
+            assert team_key.startswith(league_id)
+
+            # Team key format should be: <game#>.l.<league#>.t.<team#>.
+            assert ".t." in team_key
+
+            print(f"\nSuccessfully retrieved team key: {team_key}")
+
+    @pytest.mark.asyncio
     async def test_get_league_standings(self, skip_if_no_credentials, tools, league_id):
         """Test get_league_standings with real API."""
         result = await tools.get_league_standings(league_id)

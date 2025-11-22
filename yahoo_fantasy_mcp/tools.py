@@ -97,6 +97,32 @@ class YahooFantasyTools:
                 'error': str(e)
             }
 
+    async def get_team_key(self, league_id: str) -> Dict[str, Any]:
+        """Get the team key for the logged in user's team in a league.
+
+        Args:
+            league_id: The league ID to query
+
+        Returns:
+            Dictionary containing the team_key for the logged in user's team.
+        """
+        logger.info(f"Getting team key for league: {league_id}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            team_key = league.team_key()
+
+            return {
+                "league_id": league_id,
+                "team_key": team_key
+            }
+        except Exception as e:
+            logger.error(f"Error getting team key for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "team_key": None,
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

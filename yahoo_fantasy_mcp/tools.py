@@ -4,24 +4,45 @@ import json
 from typing import Optional, Dict, Any
 import logging
 
-# TODO(SPILLY): Import and initialize yahoo_fantasy_api.
+from yahoo_oauth import OAuth2
+import yahoo_fantasy_api as yfa
+
 logger = logging.getLogger(__name__)
 
 
 class YahooFantasyTools:
     """Tools for interacting with Yahoo Fantasy API."""
 
-    def __init__(self, client_id: str, client_secret: str):
+    def __init__(
+        self,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+        oauth2_file: Optional[str] = None
+    ):
         """Initialize the tools with Yahoo API credentials.
 
         Args:
-            client_id: Yahoo API client ID
-            client_secret: Yahoo API client secret
+            client_id: Yahoo API client ID (for env var auth)
+            client_secret: Yahoo API client secret (for env var auth)
+            oauth2_file: Path to oauth2.json file (alternative auth method)
         """
         self.client_id = client_id
         self.client_secret = client_secret
-        # TODO(SPILLY): Initialize yahoo_fantasy_api client here.
-        self._client = None
+        self.oauth2_file = oauth2_file
+
+        # Initialize OAuth2 client.
+        if oauth2_file:
+            # Use oauth2.json file for authentication.
+            logger.info(f"Initializing OAuth2 from file: {oauth2_file}")
+            self._oauth = OAuth2(None, None, from_file=oauth2_file)
+        elif client_id and client_secret:
+            # Use environment variables for authentication.
+            logger.info("Initializing OAuth2 from environment variables")
+            self._oauth = OAuth2(client_id, client_secret)
+        else:
+            raise ValueError(
+                "Either oauth2_file or both client_id and client_secret must be provided"
+            )
 
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.

@@ -1,6 +1,6 @@
 """Main MCP server implementation for Yahoo Fantasy API."""
 
-from typing import Any
+from typing import Any, Optional
 from mcp.server import Server
 from mcp.types import Tool, TextContent
 import logging
@@ -10,18 +10,27 @@ from .tools import YahooFantasyTools
 logger = logging.getLogger(__name__)
 
 
-def create_server(client_id: str, client_secret: str) -> Server:
+def create_server(
+    client_id: Optional[str] = None,
+    client_secret: Optional[str] = None,
+    oauth2_file: Optional[str] = None
+) -> Server:
     """Create and configure the MCP server.
 
     Args:
-        client_id: Yahoo API client ID
-        client_secret: Yahoo API client secret
+        client_id: Yahoo API client ID (for env var auth)
+        client_secret: Yahoo API client secret (for env var auth)
+        oauth2_file: Path to oauth2.json file (alternative auth method)
 
     Returns:
         Configured MCP Server instance
     """
     server = Server("yahoo-fantasy")
-    tools = YahooFantasyTools(client_id, client_secret)
+    tools = YahooFantasyTools(
+        client_id=client_id,
+        client_secret=client_secret,
+        oauth2_file=oauth2_file
+    )
 
     @server.list_tools()
     async def list_tools() -> list[Tool]:

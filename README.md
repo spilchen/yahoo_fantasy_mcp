@@ -31,23 +31,52 @@ pip install -e .
 Before using this MCP server, you need to set up Yahoo Fantasy API credentials:
 
 1. Register your application at [Yahoo Developer Network](https://developer.yahoo.com/apps/)
-2. Obtain your `client_id` and `client_secret`
-3. Set up OAuth2 authentication (see [yahoo_fantasy_api documentation](https://github.com/spilchen/yahoo_fantasy_api))
+2. Obtain your `consumer_key` and `consumer_secret`
+3. Set up OAuth2 authentication using one of the methods below
 
 ## Configuration
 
-Create a configuration file with your Yahoo API credentials:
+There are two ways to authenticate with Yahoo's API:
+
+### Option 1: Using oauth2.json (Recommended)
+
+Create an `oauth2.json` file with your Yahoo OAuth credentials. You can generate this file using the [yahoo_fantasy_api](https://github.com/spilchen/yahoo_fantasy_api) authentication flow:
+
+```python
+from yahoo_oauth import OAuth2
+
+# This will prompt you to authorize via browser
+sc = OAuth2(None, None, from_file='oauth2.json')
+```
+
+The `oauth2.json` file will look like:
 
 ```json
 {
-  "yahoo_client_id": "your_client_id",
-  "yahoo_client_secret": "your_client_secret"
+  "access_token": "...",
+  "consumer_key": "your_consumer_key",
+  "consumer_secret": "your_consumer_secret",
+  "guid": "...",
+  "refresh_token": "...",
+  "token_time": 1234567890.123456,
+  "token_type": "bearer"
 }
+```
+
+### Option 2: Using Environment Variables
+
+Set the following environment variables:
+
+```bash
+export YAHOO_CLIENT_ID="your_consumer_key"
+export YAHOO_CLIENT_SECRET="your_consumer_secret"
 ```
 
 ## Usage
 
 ### As an MCP Server
+
+#### With oauth2.json file (default)
 
 Add to your MCP client configuration (e.g., Claude Desktop):
 
@@ -57,9 +86,36 @@ Add to your MCP client configuration (e.g., Claude Desktop):
     "yahoo-fantasy": {
       "command": "python",
       "args": ["-m", "yahoo_fantasy_mcp"],
+      "cwd": "/path/to/directory/with/oauth2.json"
+    }
+  }
+}
+```
+
+Or specify a custom path:
+
+```json
+{
+  "mcpServers": {
+    "yahoo-fantasy": {
+      "command": "python",
+      "args": ["-m", "yahoo_fantasy_mcp", "--oauth2-file", "/path/to/oauth2.json"]
+    }
+  }
+}
+```
+
+#### With environment variables
+
+```json
+{
+  "mcpServers": {
+    "yahoo-fantasy": {
+      "command": "python",
+      "args": ["-m", "yahoo_fantasy_mcp"],
       "env": {
-        "YAHOO_CLIENT_ID": "your_client_id",
-        "YAHOO_CLIENT_SECRET": "your_client_secret"
+        "YAHOO_CLIENT_ID": "your_consumer_key",
+        "YAHOO_CLIENT_SECRET": "your_consumer_secret"
       }
     }
   }
@@ -69,7 +125,14 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 ### Standalone
 
 ```bash
+# Using oauth2.json in current directory (default)
 python -m yahoo_fantasy_mcp
+
+# Using oauth2.json from custom path
+python -m yahoo_fantasy_mcp --oauth2-file /path/to/oauth2.json
+
+# Using environment variables
+YAHOO_CLIENT_ID=your_key YAHOO_CLIENT_SECRET=your_secret python -m yahoo_fantasy_mcp
 ```
 
 ## Available Tools

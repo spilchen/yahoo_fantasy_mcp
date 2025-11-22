@@ -175,6 +175,32 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_end_week(self, league_id: str) -> Dict[str, Any]:
+        """Get the ending week number of the league season.
+
+        Args:
+            league_id: The league ID to query
+
+        Returns:
+            Dictionary containing the ending week number.
+        """
+        logger.info(f"Getting end week for league: {league_id}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            end_week = league.end_week()
+
+            return {
+                "league_id": league_id,
+                "end_week": end_week
+            }
+        except Exception as e:
+            logger.error(f"Error getting end week for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "end_week": None,
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

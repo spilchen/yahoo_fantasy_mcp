@@ -121,6 +121,27 @@ class TestYahooFantasyToolsIntegration:
             print(f"\nSuccessfully retrieved edit date: {edit_date}")
 
     @pytest.mark.asyncio
+    async def test_get_end_week(self, skip_if_no_credentials, tools, league_id):
+        """Test get_end_week with real API."""
+        result = await tools.get_end_week(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "end_week" in result
+
+        # If no error, we should have an end week number.
+        if "error" not in result:
+            end_week = result["end_week"]
+            assert end_week is not None
+            assert isinstance(end_week, int)
+
+            # End week should be positive and reasonable (typically 14-24 for most leagues).
+            assert end_week > 0
+            assert end_week <= 30
+
+            print(f"\nSuccessfully retrieved end week: {end_week}")
+
+    @pytest.mark.asyncio
     async def test_get_league_standings(self, skip_if_no_credentials, tools, league_id):
         """Test get_league_standings with real API."""
         result = await tools.get_league_standings(league_id)

@@ -72,6 +72,50 @@ export YAHOO_CLIENT_ID="your_consumer_key"
 export YAHOO_CLIENT_SECRET="your_consumer_secret"
 ```
 
+### Setting Your League ID
+
+The server requires a `YAHOO_LEAGUE_ID` environment variable to know which league to query.
+
+**Finding your League ID:**
+
+If you don't know your league ID, simply run the server without setting `YAHOO_LEAGUE_ID`:
+
+```bash
+python -m yahoo_fantasy_mcp
+```
+
+The server will list all leagues you're part of and then exit. Example output:
+
+```
+============================================================
+YAHOO_LEAGUE_ID not set - Listing available leagues
+============================================================
+
+Checking NFL leagues...
+Checking MLB leagues...
+
+Found the following leagues:
+
+1. [NFL 2024] My Fantasy League
+   League ID: 423.l.123456
+
+2. [MLB 2024] Baseball League
+   League ID: 412.l.789012
+
+To use one of these leagues, set the YAHOO_LEAGUE_ID environment variable:
+
+  export YAHOO_LEAGUE_ID=<league_id>
+
+For example:
+  export YAHOO_LEAGUE_ID=423.l.123456
+```
+
+Then set the environment variable:
+
+```bash
+export YAHOO_LEAGUE_ID=423.l.123456
+```
+
 ## Usage
 
 ### As an MCP Server
@@ -86,7 +130,10 @@ Add to your MCP client configuration (e.g., Claude Desktop):
     "yahoo-fantasy": {
       "command": "python",
       "args": ["-m", "yahoo_fantasy_mcp"],
-      "cwd": "/path/to/directory/with/oauth2.json"
+      "cwd": "/path/to/directory/with/oauth2.json",
+      "env": {
+        "YAHOO_LEAGUE_ID": "423.l.123456"
+      }
     }
   }
 }
@@ -99,7 +146,10 @@ Or specify a custom path:
   "mcpServers": {
     "yahoo-fantasy": {
       "command": "python",
-      "args": ["-m", "yahoo_fantasy_mcp", "--oauth2-file", "/path/to/oauth2.json"]
+      "args": ["-m", "yahoo_fantasy_mcp", "--oauth2-file", "/path/to/oauth2.json"],
+      "env": {
+        "YAHOO_LEAGUE_ID": "423.l.123456"
+      }
     }
   }
 }
@@ -115,7 +165,8 @@ Or specify a custom path:
       "args": ["-m", "yahoo_fantasy_mcp"],
       "env": {
         "YAHOO_CLIENT_ID": "your_consumer_key",
-        "YAHOO_CLIENT_SECRET": "your_consumer_secret"
+        "YAHOO_CLIENT_SECRET": "your_consumer_secret",
+        "YAHOO_LEAGUE_ID": "423.l.123456"
       }
     }
   }
@@ -126,12 +177,15 @@ Or specify a custom path:
 
 ```bash
 # Using oauth2.json in current directory (default)
+export YAHOO_LEAGUE_ID=423.l.123456
 python -m yahoo_fantasy_mcp
 
 # Using oauth2.json from custom path
+export YAHOO_LEAGUE_ID=423.l.123456
 python -m yahoo_fantasy_mcp --oauth2-file /path/to/oauth2.json
 
 # Using environment variables
+export YAHOO_LEAGUE_ID=423.l.123456
 YAHOO_CLIENT_ID=your_key YAHOO_CLIENT_SECRET=your_secret python -m yahoo_fantasy_mcp
 ```
 

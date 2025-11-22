@@ -44,6 +44,59 @@ class YahooFantasyTools:
                 "Either oauth2_file or both client_id and client_secret must be provided"
             )
 
+    def get_all_leagues(self, game_code: str = 'nfl', year: Optional[int] = None) -> Dict[str, Any]:
+        """Get all leagues the user is part of for a specific game and year.
+
+        Args:
+            game_code: Game code (e.g., 'nfl', 'mlb', 'nba', 'nhl')
+            year: Year to query (defaults to current year)
+
+        Returns:
+            Dictionary containing league information
+        """
+        import datetime
+
+        if year is None:
+            year = datetime.datetime.now().year
+
+        try:
+            game = yfa.Game(self._oauth, game_code)
+            league_ids = game.league_ids(year=year)
+
+            leagues = []
+            for league_id in league_ids:
+                try:
+                    league = game.to_league(league_id)
+                    league_name = league.settings().get('name', 'Unknown')
+                    leagues.append({
+                        'league_id': league_id,
+                        'name': league_name,
+                        'game_code': game_code,
+                        'year': year
+                    })
+                except Exception as e:
+                    logger.warning(f"Could not get details for league {league_id}: {e}")
+                    leagues.append({
+                        'league_id': league_id,
+                        'name': 'Unknown',
+                        'game_code': game_code,
+                        'year': year
+                    })
+
+            return {
+                'game_code': game_code,
+                'year': year,
+                'leagues': leagues
+            }
+        except Exception as e:
+            logger.error(f"Error getting leagues for {game_code} {year}: {e}")
+            return {
+                'game_code': game_code,
+                'year': year,
+                'leagues': [],
+                'error': str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

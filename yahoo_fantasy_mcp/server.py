@@ -172,7 +172,7 @@ def create_server(
             ),
             Tool(
                 name="get_free_agents",
-                description="Get available free agents in a league",
+                description="Get available free agents in a league for a specific position",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -182,10 +182,10 @@ def create_server(
                         },
                         "position": {
                             "type": "string",
-                            "description": "Position filter (optional)"
+                            "description": "Position filter (required). Use position codes like 'QB', 'RB', 'WR', 'TE', etc."
                         }
                     },
-                    "required": ["league_id"]
+                    "required": ["league_id", "position"]
                 }
             ),
         ]
@@ -229,7 +229,7 @@ def create_server(
             elif name == "get_free_agents":
                 result = await tools.get_free_agents(
                     arguments["league_id"],
-                    arguments.get("position")
+                    arguments["position"]
                 )
             else:
                 raise ValueError(f"Unknown tool: {name}")

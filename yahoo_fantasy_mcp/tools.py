@@ -288,17 +288,34 @@ class YahooFantasyTools:
         return {"league_id": league_id, "search_term": search_term, "results": []}
 
     async def get_free_agents(
-        self, league_id: str, position: Optional[str] = None
+        self, league_id: str, position: str
     ) -> Dict[str, Any]:
-        """Get available free agents in a league.
+        """Get available free agents in a league for a specific position.
 
         Args:
             league_id: The league ID to query
-            position: Position filter (optional)
+            position: Position filter (required). Use position codes like 'QB', 'RB',
+                     'WR', 'TE', etc., or position types like 'O' for offense, 'D' for defense.
 
         Returns:
-            Dictionary containing free agent data
+            Dictionary containing free agent data including player_id, name,
+            position_type, and eligible_positions for each player.
         """
-        # TODO(SPILLY): Implement using yahoo_fantasy_api.
         logger.info(f"Getting free agents for league: {league_id}, position: {position}")
-        return {"league_id": league_id, "position": position, "free_agents": []}
+        try:
+            league = yfa.League(self._oauth, league_id)
+            free_agents = league.free_agents(position)
+
+            return {
+                "league_id": league_id,
+                "position": position,
+                "free_agents": free_agents
+            }
+        except Exception as e:
+            logger.error(f"Error getting free agents for league {league_id}, position {position}: {e}")
+            return {
+                "league_id": league_id,
+                "position": position,
+                "free_agents": [],
+                "error": str(e)
+            }

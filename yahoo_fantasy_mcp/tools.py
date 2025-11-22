@@ -104,11 +104,26 @@ class YahooFantasyTools:
             league_id: The league ID to query
 
         Returns:
-            Dictionary containing league standings data
+            Dictionary containing league standings data with teams ordered by rank.
+            Each team includes: team_key, name, rank, playoff_seed, outcome_totals
+            (wins, losses, ties, percentage), and games_back.
         """
-        # TODO(SPILLY): Implement using yahoo_fantasy_api.
         logger.info(f"Getting standings for league: {league_id}")
-        return {"league_id": league_id, "standings": []}
+        try:
+            league = yfa.League(self._oauth, league_id)
+            standings = league.standings()
+
+            return {
+                "league_id": league_id,
+                "standings": standings
+            }
+        except Exception as e:
+            logger.error(f"Error getting standings for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "standings": [],
+                "error": str(e)
+            }
 
     async def get_team_roster(self, team_key: str) -> Dict[str, Any]:
         """Get roster for a specific team.

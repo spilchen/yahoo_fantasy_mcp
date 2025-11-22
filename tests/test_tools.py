@@ -23,7 +23,9 @@ class TestYahooFantasyTools:
         result = await tools.get_league_standings("test_league_123")
         assert "league_id" in result
         assert result["league_id"] == "test_league_123"
-        # TODO(SPILLY): Add more assertions when implementation is complete.
+        assert "standings" in result
+        # Note: Without mocking, this will call the real API and may error.
+        # In a real scenario, we should mock the yahoo_fantasy_api calls.
 
     @pytest.mark.asyncio
     async def test_get_team_roster(self, tools):

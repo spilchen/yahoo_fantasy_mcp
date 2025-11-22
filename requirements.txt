@@ -1,0 +1,2 @@
+yahoo_fantasy_api>=2.0.0
+mcp>=0.1.0

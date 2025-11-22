@@ -1,14 +1,17 @@
 """Entry point for running the Yahoo Fantasy MCP server."""
 
+import argparse
 import asyncio
+import logging
 import os
 import sys
-import argparse
 from pathlib import Path
-from mcp.server.stdio import stdio_server
+
 from .server import create_server
+from .stdio_transport import graceful_stdio_server
 from .tools import YahooFantasyTools
 
+logger = logging.getLogger(__name__)
 
 async def run_server(
     client_id: str = None,
@@ -22,17 +25,44 @@ async def run_server(
         client_secret: Yahoo API client secret (for env var auth)
         oauth2_file: Path to oauth2.json file (alternative auth method)
     """
-    async with stdio_server() as (read_stream, write_stream):
-        server = create_server(
-            client_id=client_id,
-            client_secret=client_secret,
-            oauth2_file=oauth2_file
-        )
-        await server.run(
-            read_stream,
-            write_stream,
-            server.create_initialization_options()
-        )
+    server_task = None
+    try:
+        async with graceful_stdio_server() as (read_stream, write_stream):
+            server = create_server(
+                client_id=client_id,
+                client_secret=client_secret,
+                oauth2_file=oauth2_file
+            )
+            server_task = asyncio.create_task(
+                server.run(
+                    read_stream,
+                    write_stream,
+                    server.create_initialization_options()
+                )
+            )
+            await server_task
+    except asyncio.CancelledError:
+        logger.info("Server shutdown requested")
+        if server_task and not server_task.done():
+            server_task.cancel()
+            try:
+                await server_task
+            except asyncio.CancelledError:
+                pass
+        # Re-raise to ensure cleanup continues.
+        raise
+    except KeyboardInterrupt:
+        logger.info("Server interrupted by user")
+        if server_task and not server_task.done():
+            server_task.cancel()
+            try:
+                await server_task
+            except asyncio.CancelledError:
+                pass
+        raise
+    except Exception as e:
+        logger.error(f"Server error: {e}")
+        raise
 
 
 def list_available_leagues(
@@ -135,7 +165,11 @@ def main():
         sys.exit(0)
 
     print(f"Using league ID: {league_id}", file=sys.stderr)
-    asyncio.run(run_server(**auth_kwargs))
+
+    try:
+        asyncio.run(run_server(**auth_kwargs))
+    except KeyboardInterrupt:
+        print("\nServer stopped.", file=sys.stderr)
 
 
 if __name__ == "__main__":

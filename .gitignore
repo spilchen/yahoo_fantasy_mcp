@@ -133,3 +133,4 @@ dmypy.json
 # Yahoo OAuth credentials
 oauth2.json
 token.json
+.mcp.json

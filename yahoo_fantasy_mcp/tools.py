@@ -460,6 +460,35 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_team_matchup(self, team_key: str, week: int) -> Dict[str, Any]:
+        """Get the opponent team key for a team's matchup in a given week.
+
+        Args:
+            team_key: The team key to query
+            week: Week number to find the matchup for
+
+        Returns:
+            Dictionary containing the opponent's team_key for the specified week.
+        """
+        logger.info(f"Getting matchup for team: {team_key}, week: {week}")
+        try:
+            team = yfa.Team(self._oauth, team_key)
+            opponent_team_key = team.matchup(week)
+
+            return {
+                "team_key": team_key,
+                "week": week,
+                "opponent_team_key": opponent_team_key
+            }
+        except Exception as e:
+            logger.error(f"Error getting matchup for team {team_key}, week {week}: {e}")
+            return {
+                "team_key": team_key,
+                "week": week,
+                "opponent_team_key": None,
+                "error": str(e)
+            }
+
     async def get_matchup_scores(
         self, team_key: str, week: Optional[int] = None
     ) -> Dict[str, Any]:

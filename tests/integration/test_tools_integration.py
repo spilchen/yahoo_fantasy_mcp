@@ -550,3 +550,46 @@ class TestYahooFantasyToolsIntegration:
             print(f"Team ID: {details['team_id']}")
             if "url" in details:
                 print(f"Team URL: {details['url']}")
+
+    @pytest.mark.asyncio
+    async def test_get_team_matchup(self, skip_if_no_credentials, tools, league_id):
+        """Test get_team_matchup with real API."""
+        # First, get team_key for the logged in user's team.
+        team_key_result = await tools.get_team_key(league_id)
+
+        if "error" in team_key_result or not team_key_result.get("team_key"):
+            pytest.skip("Could not get team_key for testing")
+
+        team_key = team_key_result["team_key"]
+
+        # Get current week to test with.
+        week_result = await tools.get_current_week(league_id)
+        if "error" in week_result or not week_result.get("current_week"):
+            pytest.skip("Could not get current week for testing")
+
+        current_week = week_result["current_week"]
+
+        # Test get_team_matchup for the current week.
+        result = await tools.get_team_matchup(team_key, current_week)
+
+        assert "team_key" in result
+        assert result["team_key"] == team_key
+        assert "week" in result
+        assert result["week"] == current_week
+        assert "opponent_team_key" in result
+
+        # If no error, we should have opponent team key.
+        if "error" not in result:
+            opponent_team_key = result["opponent_team_key"]
+            # opponent_team_key can be None if there's no matchup (e.g., bye week).
+            if opponent_team_key:
+                assert isinstance(opponent_team_key, str)
+                # Opponent team key should be different from our team key.
+                assert opponent_team_key != team_key
+                # Should have same league prefix.
+                assert opponent_team_key.startswith(league_id)
+
+                print(f"\nSuccessfully retrieved matchup for team {team_key}, week {current_week}")
+                print(f"Opponent team key: {opponent_team_key}")
+            else:
+                print(f"\nNo opponent for team {team_key} in week {current_week} (bye week)")

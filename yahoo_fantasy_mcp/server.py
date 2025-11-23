@@ -231,6 +231,24 @@ def create_server(
                 }
             ),
             Tool(
+                name="get_team_matchup",
+                description="Get the opponent team key for a team's matchup in a given week",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "team_key": {
+                            "type": "string",
+                            "description": "The team key to query"
+                        },
+                        "week": {
+                            "type": "integer",
+                            "description": "Week number to find the matchup for"
+                        }
+                    },
+                    "required": ["team_key", "week"]
+                }
+            ),
+            Tool(
                 name="get_matchup_scores",
                 description="Get scores for current or specific matchup",
                 inputSchema={
@@ -396,6 +414,11 @@ def create_server(
                 result = await tools.get_team_roster(arguments["team_key"])
             elif name == "get_team_details":
                 result = await tools.get_team_details(arguments["team_key"])
+            elif name == "get_team_matchup":
+                result = await tools.get_team_matchup(
+                    arguments["team_key"],
+                    arguments["week"]
+                )
             elif name == "get_matchup_scores":
                 result = await tools.get_matchup_scores(
                     arguments["team_key"],

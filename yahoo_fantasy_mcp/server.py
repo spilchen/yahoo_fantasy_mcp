@@ -284,6 +284,20 @@ def create_server(
                     "required": ["league_id", "position"]
                 }
             ),
+            Tool(
+                name="get_waivers",
+                description="Get players currently on waivers in the league",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "league_id": {
+                            "type": "string",
+                            "description": "The league ID to query"
+                        }
+                    },
+                    "required": ["league_id"]
+                }
+            ),
         ]
 
     @server.call_tool()
@@ -346,6 +360,8 @@ def create_server(
                     arguments["league_id"],
                     arguments["position"]
                 )
+            elif name == "get_waivers":
+                result = await tools.get_waivers(arguments["league_id"])
             else:
                 raise ValueError(f"Unknown tool: {name}")
 

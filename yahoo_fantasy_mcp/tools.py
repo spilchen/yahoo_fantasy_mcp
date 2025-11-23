@@ -496,3 +496,31 @@ class YahooFantasyTools:
                 "free_agents": [],
                 "error": str(e)
             }
+
+    async def get_waivers(self, league_id: str) -> Dict[str, Any]:
+        """Get players currently on waivers in the league.
+
+        Args:
+            league_id: The league ID to query
+
+        Returns:
+            Dictionary containing waiver data including player_id, name,
+            position_type, eligible_positions, percent_owned, and status
+            for each player.
+        """
+        logger.info(f"Getting waivers for league: {league_id}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            waivers = league.waivers()
+
+            return {
+                "league_id": league_id,
+                "waivers": waivers
+            }
+        except Exception as e:
+            logger.error(f"Error getting waivers for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "waivers": [],
+                "error": str(e)
+            }

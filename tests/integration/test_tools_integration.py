@@ -371,3 +371,31 @@ class TestYahooFantasyToolsIntegration:
                 print(f"First transaction status: {first_txn['status']}")
             else:
                 print("\nNo trade transactions found in league.")
+
+    @pytest.mark.asyncio
+    async def test_get_waivers(self, skip_if_no_credentials, tools, league_id):
+        """Test get_waivers with real API."""
+        result = await tools.get_waivers(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "waivers" in result
+
+        # If no error, we should have waivers data.
+        if "error" not in result:
+            waivers = result["waivers"]
+            assert isinstance(waivers, list)
+
+            # If there are players on waivers, verify the structure.
+            if len(waivers) > 0:
+                first_waiver = waivers[0]
+                assert "player_id" in first_waiver
+                assert "name" in first_waiver
+                assert "position_type" in first_waiver
+                assert "eligible_positions" in first_waiver
+                # percent_owned and status are optional but commonly present.
+
+                print(f"\nSuccessfully retrieved {len(waivers)} players on waivers")
+                print(f"First player on waivers: {first_waiver['name']}")
+            else:
+                print("\nNo players currently on waivers.")

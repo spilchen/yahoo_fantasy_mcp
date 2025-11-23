@@ -7,13 +7,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="yahoo_fantasy_mcp",
-    version="0.1.0",
+    version="0.1.1",
     author="Matt Spilchen",
     author_email="matt.spilchen@gmail.com",
     description="MCP server for Yahoo Fantasy Sports API",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/yahoo_fantasy_mcp",
+    url="https://github.com/spilchen/yahoo_fantasy_mcp",
     packages=find_packages(exclude=["tests", "tests.*"]),
     classifiers=[
         "Development Status :: 3 - Alpha",

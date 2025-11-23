@@ -633,3 +633,72 @@ class TestYahooFantasyToolsIntegration:
                 print(f"Trader: {first_trade['trader_team_key']} -> Tradee: {first_trade['tradee_team_key']}")
             else:
                 print(f"\nNo proposed trades for team {team_key}")
+
+    @pytest.mark.asyncio
+    async def test_get_matchup_scores(self, skip_if_no_credentials, tools, league_id):
+        """Test get_matchup_scores with real API."""
+        # First, get team_key for the logged in user's team.
+        team_key_result = await tools.get_team_key(league_id)
+
+        if "error" in team_key_result or not team_key_result.get("team_key"):
+            pytest.skip("Could not get team_key for testing")
+
+        team_key = team_key_result["team_key"]
+
+        # Test with week 1 (a completed week with scores).
+        result = await tools.get_matchup_scores(team_key, week=1)
+
+        assert "team_key" in result
+        assert result["team_key"] == team_key
+        assert "week" in result
+        assert result["week"] == 1
+        assert "matchup" in result
+
+        # If no error, we should have matchup data.
+        if "error" not in result:
+            matchup = result["matchup"]
+            assert matchup is not None
+            assert isinstance(matchup, dict)
+
+            # Verify matchup metadata.
+            assert "week" in matchup
+            assert matchup["week"] == "1"
+            assert "status" in matchup
+            assert "teams" in matchup
+
+            # Verify teams data.
+            teams = matchup["teams"]
+            assert isinstance(teams, list)
+            assert len(teams) == 2
+
+            # Verify both teams have required data.
+            for team in teams:
+                assert "team_key" in team
+                assert "name" in team
+                assert "team_points" in team
+
+                # Verify team_points structure.
+                if team["team_points"]:
+                    assert "total" in team["team_points"]
+
+            # Find our team in the matchup.
+            our_team = None
+            opponent_team = None
+            for team in teams:
+                if team["team_key"] == team_key:
+                    our_team = team
+                else:
+                    opponent_team = team
+
+            assert our_team is not None
+            assert opponent_team is not None
+
+            print(f"\nSuccessfully retrieved matchup scores for team {team_key}, week 1")
+            print(f"Our team: {our_team['name']} - {our_team['team_points']['total']} points")
+            print(f"Opponent: {opponent_team['name']} - {opponent_team['team_points']['total']} points")
+            print(f"Matchup status: {matchup['status']}")
+            if matchup.get("is_tied"):
+                print(f"Result: Tied")
+            else:
+                winner = our_team if int(our_team['team_points']['total']) > int(opponent_team['team_points']['total']) else opponent_team
+                print(f"Winner: {winner['name']}")

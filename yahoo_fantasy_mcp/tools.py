@@ -548,11 +548,149 @@ class YahooFantasyTools:
             week: Week number (optional, defaults to current week)
 
         Returns:
-            Dictionary containing matchup score data
+            Dictionary containing matchup score data including both teams' scores,
+            stats, and matchup metadata.
         """
-        # TODO(SPILLY): Implement using yahoo_fantasy_api.
         logger.info(f"Getting matchup scores for team: {team_key}, week: {week}")
-        return {"team_key": team_key, "week": week, "matchup": {}}
+        try:
+            # Extract league_id from team_key (format: <game#>.l.<league#>.t.<team#>).
+            league_id = team_key[:team_key.find(".t.")]
+
+            league = yfa.League(self._oauth, league_id)
+            matchups_data = league.matchups(week=week)
+
+            # Navigate to matchups in the data structure.
+            if "fantasy_content" not in matchups_data:
+                return {
+                    "team_key": team_key,
+                    "week": week,
+                    "matchup": None,
+                    "error": "No matchup data available"
+                }
+
+            league_data = matchups_data["fantasy_content"]["league"]
+            scoreboard = league_data[1]["scoreboard"]
+            matchups_container = scoreboard["0"]["matchups"]
+
+            # Find the matchup that includes the specified team_key.
+            target_matchup = None
+            for key in matchups_container:
+                if key == "count":
+                    continue
+
+                matchup_entry = matchups_container[key]
+                if "matchup" not in matchup_entry:
+                    continue
+
+                matchup = matchup_entry["matchup"]
+                teams_data = matchup["0"]["teams"]
+
+                # Check if this matchup includes our team.
+                for team_idx in teams_data:
+                    if team_idx == "count":
+                        continue
+
+                    team = teams_data[team_idx]["team"]
+                    # Find team_key in team data (first item is a list with dicts).
+                    if len(team) > 0 and isinstance(team[0], list):
+                        for item in team[0]:
+                            if isinstance(item, dict) and "team_key" in item:
+                                if item["team_key"] == team_key:
+                                    target_matchup = matchup
+                                    break
+                    else:
+                        # Fallback for different structure.
+                        for item in team:
+                            if isinstance(item, dict) and "team_key" in item:
+                                if item["team_key"] == team_key:
+                                    target_matchup = matchup
+                                    break
+
+                    if target_matchup:
+                        break
+
+                if target_matchup:
+                    break
+
+            if not target_matchup:
+                return {
+                    "team_key": team_key,
+                    "week": week,
+                    "matchup": None,
+                    "error": "Team not found in matchups for this week"
+                }
+
+            # Extract matchup data.
+            matchup_result = {
+                "week": target_matchup.get("week"),
+                "week_start": target_matchup.get("week_start"),
+                "week_end": target_matchup.get("week_end"),
+                "status": target_matchup.get("status"),
+                "is_playoffs": target_matchup.get("is_playoffs"),
+                "is_tied": target_matchup.get("is_tied"),
+                "teams": []
+            }
+
+            # Extract team scores.
+            teams_data = target_matchup["0"]["teams"]
+            for team_idx in teams_data:
+                if team_idx == "count":
+                    continue
+
+                team = teams_data[team_idx]["team"]
+                team_info = {
+                    "team_key": None,
+                    "name": None,
+                    "team_points": None,
+                    "team_stats": None
+                }
+
+                # Team data structure: first item is list of dicts with metadata,
+                # second item is dict with stats/points.
+                if len(team) > 0 and isinstance(team[0], list):
+                    # Extract metadata from first list.
+                    for item in team[0]:
+                        if isinstance(item, dict):
+                            if "team_key" in item:
+                                team_info["team_key"] = item["team_key"]
+                            if "name" in item:
+                                team_info["name"] = item["name"]
+
+                    # Extract stats/points from second dict.
+                    if len(team) > 1 and isinstance(team[1], dict):
+                        if "team_points" in team[1]:
+                            team_info["team_points"] = team[1]["team_points"]
+                        if "team_stats" in team[1]:
+                            team_info["team_stats"] = team[1]["team_stats"]
+                else:
+                    # Fallback for different structure.
+                    for item in team:
+                        if isinstance(item, dict):
+                            if "team_key" in item:
+                                team_info["team_key"] = item["team_key"]
+                            if "name" in item:
+                                team_info["name"] = item["name"]
+                            if "team_points" in item:
+                                team_info["team_points"] = item["team_points"]
+                            if "team_stats" in item:
+                                team_info["team_stats"] = item["team_stats"]
+
+                matchup_result["teams"].append(team_info)
+
+            return {
+                "team_key": team_key,
+                "week": week,
+                "matchup": matchup_result
+            }
+
+        except Exception as e:
+            logger.error(f"Error getting matchup scores for team {team_key}, week {week}: {e}")
+            return {
+                "team_key": team_key,
+                "week": week,
+                "matchup": None,
+                "error": str(e)
+            }
 
     async def get_player_stats(
         self,

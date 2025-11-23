@@ -489,6 +489,35 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_team_proposed_trades(self, team_key: str) -> Dict[str, Any]:
+        """Get proposed trades that include the team.
+
+        Args:
+            team_key: The team key to query
+
+        Returns:
+            Dictionary containing a list of proposed trade transactions that the team
+            has offered and that have been offered to the team. Each trade includes:
+            transaction_key, status, trader_team_key, tradee_team_key, trader_players,
+            and tradee_players.
+        """
+        logger.info(f"Getting proposed trades for team: {team_key}")
+        try:
+            team = yfa.Team(self._oauth, team_key)
+            proposed_trades = team.proposed_trades()
+
+            return {
+                "team_key": team_key,
+                "proposed_trades": proposed_trades
+            }
+        except Exception as e:
+            logger.error(f"Error getting proposed trades for team {team_key}: {e}")
+            return {
+                "team_key": team_key,
+                "proposed_trades": [],
+                "error": str(e)
+            }
+
     async def get_matchup_scores(
         self, team_key: str, week: Optional[int] = None
     ) -> Dict[str, Any]:

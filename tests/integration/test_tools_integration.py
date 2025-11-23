@@ -593,3 +593,43 @@ class TestYahooFantasyToolsIntegration:
                 print(f"Opponent team key: {opponent_team_key}")
             else:
                 print(f"\nNo opponent for team {team_key} in week {current_week} (bye week)")
+
+    @pytest.mark.asyncio
+    async def test_get_team_proposed_trades(self, skip_if_no_credentials, tools, league_id):
+        """Test get_team_proposed_trades with real API."""
+        # First, get team_key for the logged in user's team.
+        team_key_result = await tools.get_team_key(league_id)
+
+        if "error" in team_key_result or not team_key_result.get("team_key"):
+            pytest.skip("Could not get team_key for testing")
+
+        team_key = team_key_result["team_key"]
+
+        # Test get_team_proposed_trades.
+        result = await tools.get_team_proposed_trades(team_key)
+
+        assert "team_key" in result
+        assert result["team_key"] == team_key
+        assert "proposed_trades" in result
+
+        # If no error, we should have proposed trades data (may be empty list).
+        if "error" not in result:
+            proposed_trades = result["proposed_trades"]
+            assert isinstance(proposed_trades, list)
+
+            # If there are proposed trades, verify the structure.
+            if len(proposed_trades) > 0:
+                first_trade = proposed_trades[0]
+                assert "transaction_key" in first_trade
+                assert "status" in first_trade
+                assert first_trade["status"] == "proposed"
+                assert "trader_team_key" in first_trade
+                assert "tradee_team_key" in first_trade
+                # trader_players and tradee_players should be present.
+                assert "trader_players" in first_trade or "tradee_players" in first_trade
+
+                print(f"\nSuccessfully retrieved {len(proposed_trades)} proposed trades for team {team_key}")
+                print(f"First trade: {first_trade['transaction_key']}")
+                print(f"Trader: {first_trade['trader_team_key']} -> Tradee: {first_trade['tradee_team_key']}")
+            else:
+                print(f"\nNo proposed trades for team {team_key}")

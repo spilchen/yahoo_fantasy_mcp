@@ -249,6 +249,20 @@ def create_server(
                 }
             ),
             Tool(
+                name="get_team_proposed_trades",
+                description="Get proposed trades that include the team (both offered and received)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "team_key": {
+                            "type": "string",
+                            "description": "The team key to query"
+                        }
+                    },
+                    "required": ["team_key"]
+                }
+            ),
+            Tool(
                 name="get_matchup_scores",
                 description="Get scores for current or specific matchup",
                 inputSchema={
@@ -419,6 +433,8 @@ def create_server(
                     arguments["team_key"],
                     arguments["week"]
                 )
+            elif name == "get_team_proposed_trades":
+                result = await tools.get_team_proposed_trades(arguments["team_key"])
             elif name == "get_matchup_scores":
                 result = await tools.get_matchup_scores(
                     arguments["team_key"],

@@ -339,3 +339,35 @@ class TestYahooFantasyToolsIntegration:
 
             print(f"\nSuccessfully retrieved {len(standings)} teams")
             print(f"First place: {first_team['name']}")
+
+    @pytest.mark.asyncio
+    async def test_get_transactions(self, skip_if_no_credentials, tools, league_id):
+        """Test get_transactions with real API."""
+        # Test with trade transactions.
+        result = await tools.get_transactions(league_id, "trade", "5")
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "tran_types" in result
+        assert result["tran_types"] == "trade"
+        assert "count" in result
+        assert result["count"] == "5"
+        assert "transactions" in result
+
+        # If no error, we should have transactions data.
+        if "error" not in result:
+            transactions = result["transactions"]
+            assert isinstance(transactions, list)
+
+            # If there are transactions, verify the structure.
+            if len(transactions) > 0:
+                first_txn = transactions[0]
+                assert "status" in first_txn
+                assert "timestamp" in first_txn
+                # Transaction should have transaction_id or transaction_key.
+                assert "transaction_id" in first_txn or "transaction_key" in first_txn
+
+                print(f"\nSuccessfully retrieved {len(transactions)} trade transactions")
+                print(f"First transaction status: {first_txn['status']}")
+            else:
+                print("\nNo trade transactions found in league.")

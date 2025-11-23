@@ -167,6 +167,28 @@ def create_server(
                 }
             ),
             Tool(
+                name="get_transactions",
+                description="Get league transactions (adds, drops, trades, commish moves)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "league_id": {
+                            "type": "string",
+                            "description": "The league ID to query"
+                        },
+                        "tran_types": {
+                            "type": "string",
+                            "description": "Comma-separated transaction types: add, drop, commish, trade"
+                        },
+                        "count": {
+                            "type": "string",
+                            "description": "Number of transactions to retrieve (optional, returns all if not specified)"
+                        }
+                    },
+                    "required": ["league_id", "tran_types"]
+                }
+            ),
+            Tool(
                 name="get_league_standings",
                 description="Get current standings for a fantasy league",
                 inputSchema={
@@ -297,6 +319,12 @@ def create_server(
                 result = await tools.get_stat_categories(arguments["league_id"])
             elif name == "get_teams":
                 result = await tools.get_teams(arguments["league_id"])
+            elif name == "get_transactions":
+                result = await tools.get_transactions(
+                    arguments["league_id"],
+                    arguments["tran_types"],
+                    arguments.get("count")
+                )
             elif name == "get_league_standings":
                 result = await tools.get_league_standings(arguments["league_id"])
             elif name == "get_team_roster":

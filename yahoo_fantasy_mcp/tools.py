@@ -342,6 +342,42 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_transactions(
+        self, league_id: str, tran_types: str, count: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Get transactions for the league.
+
+        Args:
+            league_id: The league ID to query
+            tran_types: Comma-separated transaction types to retrieve. Valid values:
+                       add, drop, commish, trade
+            count: Number of transactions to retrieve (optional, returns all if not specified)
+
+        Returns:
+            Dictionary containing a list of transactions with details including players,
+            status, timestamp, team keys/names, transaction_id, and transaction_key.
+        """
+        logger.info(f"Getting transactions for league: {league_id}, types: {tran_types}, count: {count}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            transactions = league.transactions(tran_types, count)
+
+            return {
+                "league_id": league_id,
+                "tran_types": tran_types,
+                "count": count,
+                "transactions": transactions
+            }
+        except Exception as e:
+            logger.error(f"Error getting transactions for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "tran_types": tran_types,
+                "count": count,
+                "transactions": [],
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

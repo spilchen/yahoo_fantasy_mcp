@@ -217,6 +217,20 @@ def create_server(
                 }
             ),
             Tool(
+                name="get_team_details",
+                description="Get detailed information about a specific team",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "team_key": {
+                            "type": "string",
+                            "description": "The team key to query"
+                        }
+                    },
+                    "required": ["team_key"]
+                }
+            ),
+            Tool(
                 name="get_matchup_scores",
                 description="Get scores for current or specific matchup",
                 inputSchema={
@@ -380,6 +394,8 @@ def create_server(
                 result = await tools.get_league_standings(arguments["league_id"])
             elif name == "get_team_roster":
                 result = await tools.get_team_roster(arguments["team_key"])
+            elif name == "get_team_details":
+                result = await tools.get_team_details(arguments["team_key"])
             elif name == "get_matchup_scores":
                 result = await tools.get_matchup_scores(
                     arguments["team_key"],

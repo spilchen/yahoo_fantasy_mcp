@@ -514,3 +514,39 @@ class TestYahooFantasyToolsIntegration:
                     print(f"Sample stats: {stat_keys[:5]}")
             else:
                 print(f"\nNo stats available for player ID {test_player_id}")
+
+    @pytest.mark.asyncio
+    async def test_get_team_details(self, skip_if_no_credentials, tools, league_id):
+        """Test get_team_details with real API."""
+        # First, get team_key for the logged in user's team.
+        team_key_result = await tools.get_team_key(league_id)
+
+        if "error" in team_key_result or not team_key_result.get("team_key"):
+            pytest.skip("Could not get team_key for testing")
+
+        team_key = team_key_result["team_key"]
+
+        # Now test get_team_details with this team_key.
+        result = await tools.get_team_details(team_key)
+
+        assert "team_key" in result
+        assert result["team_key"] == team_key
+        assert "details" in result
+
+        # If no error, we should have team details.
+        if "error" not in result:
+            details = result["details"]
+            assert isinstance(details, dict)
+
+            # Verify structure of team details.
+            assert "team_key" in details
+            assert details["team_key"] == team_key
+            assert "team_id" in details
+            assert "name" in details
+            # url and team_logos are optional but commonly present.
+
+            print(f"\nSuccessfully retrieved details for team {team_key}")
+            print(f"Team name: {details['name']}")
+            print(f"Team ID: {details['team_id']}")
+            if "url" in details:
+                print(f"Team URL: {details['url']}")

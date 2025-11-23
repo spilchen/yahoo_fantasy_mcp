@@ -433,6 +433,33 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_team_details(self, team_key: str) -> Dict[str, Any]:
+        """Get detailed information about a specific team.
+
+        Args:
+            team_key: The team key to query
+
+        Returns:
+            Dictionary containing team details including team_key, team_id, name,
+            url, team_logos, managers, and other team-specific information.
+        """
+        logger.info(f"Getting details for team: {team_key}")
+        try:
+            team = yfa.Team(self._oauth, team_key)
+            details = team.details()
+
+            return {
+                "team_key": team_key,
+                "details": details
+            }
+        except Exception as e:
+            logger.error(f"Error getting details for team {team_key}: {e}")
+            return {
+                "team_key": team_key,
+                "details": {},
+                "error": str(e)
+            }
+
     async def get_matchup_scores(
         self, team_key: str, week: Optional[int] = None
     ) -> Dict[str, Any]:

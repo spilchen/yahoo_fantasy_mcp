@@ -1,0 +1,1 @@
+- Get the league ID from the environment variables, .mcp.json or .envrc

@@ -407,28 +407,48 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
-    async def get_team_roster(self, team_key: str) -> Dict[str, Any]:
-        """Get roster for a specific team.
+    async def get_team_roster(
+        self,
+        team_key: str,
+        week: Optional[int] = None,
+        day: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Get roster for a specific team for a given week or date.
 
         Args:
             team_key: The team key to query
+            week: Week number of the roster to get (optional)
+            day: Day to get the roster in YYYY-MM-DD format (optional)
+                If neither week nor day is specified, returns today's roster.
 
         Returns:
-            Dictionary containing team roster data including player details, positions, and status.
+            Dictionary containing team roster data including player_id, name,
+            position_type, eligible_positions, selected_position, and status
+            for each player.
         """
-        logger.info(f"Getting roster for team: {team_key}")
+        logger.info(f"Getting roster for team: {team_key}, week: {week}, day: {day}")
         try:
             team = yfa.Team(self._oauth, team_key)
-            roster = team.roster()
+
+            # Convert day string to datetime.date if provided.
+            day_obj = None
+            if day:
+                day_obj = datetime.datetime.strptime(day, "%Y-%m-%d").date()
+
+            roster = team.roster(week=week, day=day_obj)
 
             return {
                 "team_key": team_key,
+                "week": week,
+                "day": day,
                 "roster": roster
             }
         except Exception as e:
-            logger.error(f"Error getting roster for team {team_key}: {e}")
+            logger.error(f"Error getting roster for team {team_key}, week {week}, day {day}: {e}")
             return {
                 "team_key": team_key,
+                "week": week,
+                "day": day,
                 "roster": [],
                 "error": str(e)
             }

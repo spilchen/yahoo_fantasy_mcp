@@ -204,13 +204,21 @@ def create_server(
             ),
             Tool(
                 name="get_team_roster",
-                description="Get roster for a specific team",
+                description="Get roster for a specific team for a given week or date",
                 inputSchema={
                     "type": "object",
                     "properties": {
                         "team_key": {
                             "type": "string",
                             "description": "The team key to query"
+                        },
+                        "week": {
+                            "type": "integer",
+                            "description": "Week number of the roster to get (optional)"
+                        },
+                        "day": {
+                            "type": "string",
+                            "description": "Day to get the roster (YYYY-MM-DD format, optional). If neither week nor day is specified, returns today's roster."
                         }
                     },
                     "required": ["team_key"]
@@ -425,7 +433,11 @@ def create_server(
             elif name == "get_league_standings":
                 result = await tools.get_league_standings(arguments["league_id"])
             elif name == "get_team_roster":
-                result = await tools.get_team_roster(arguments["team_key"])
+                result = await tools.get_team_roster(
+                    arguments["team_key"],
+                    arguments.get("week"),
+                    arguments.get("day")
+                )
             elif name == "get_team_details":
                 result = await tools.get_team_details(arguments["team_key"])
             elif name == "get_team_matchup":

@@ -1,13 +1,49 @@
 """Main MCP server implementation for Yahoo Fantasy API."""
 
-from typing import Any, Optional
-from mcp.server import Server
-from mcp.types import Tool, TextContent
+from __future__ import annotations
+
 import logging
+import os
+from typing import Any, Optional
+
+from mcp.server import Server
+from mcp.types import Resource, Tool, TextContent
 
 from .tools import YahooFantasyTools
 
 logger = logging.getLogger(__name__)
+
+_YAHOO_LEAGUE_ENV = "YAHOO_LEAGUE_ID"
+_LEAGUE_RESOURCE_URI = "resource://yahoo-fantasy/league-id"
+
+
+def _league_resource_description(league_id: str | None) -> str:
+    """Describe the league resource based on whether a league ID is configured."""
+    if league_id:
+        return f"Yahoo Fantasy league configured via {_YAHOO_LEAGUE_ENV}: {league_id}"
+    return f"{_YAHOO_LEAGUE_ENV} is not set; no league is configured for this server."
+
+
+def _build_league_resource(league_id: str | None) -> Resource:
+    """Build the Resource metadata for the configured league ID."""
+    meta_payload = {"league_id": league_id} if league_id else None
+    size = len(league_id) if league_id else None
+    return Resource(
+        uri=_LEAGUE_RESOURCE_URI,
+        name="yahoo-league-id",
+        title="Yahoo Fantasy League ID",
+        description=_league_resource_description(league_id),
+        mimeType="application/json",
+        size=size,
+        _meta=meta_payload,
+    )
+
+
+def _list_league_resources(league_id: str | None = None) -> list[Resource]:
+    """Return the league resource list, defaulting to the configured environment var."""
+    if league_id is None:
+        league_id = os.getenv(_YAHOO_LEAGUE_ENV)
+    return [_build_league_resource(league_id)]
 
 
 def create_server(
@@ -31,6 +67,11 @@ def create_server(
         client_secret=client_secret,
         oauth2_file=oauth2_file
     )
+
+    @server.list_resources()
+    async def list_resources() -> list[Resource]:
+        """List resources exposed by the MCP server."""
+        return _list_league_resources()
 
     @server.list_tools()
     async def list_tools() -> list[Tool]:

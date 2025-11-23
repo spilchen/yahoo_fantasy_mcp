@@ -401,10 +401,10 @@ class TestYahooFantasyToolsIntegration:
                 print("\nNo players currently on waivers.")
 
     @pytest.mark.asyncio
-    async def test_get_player_details_by_name(self, skip_if_no_credentials, tools, league_id):
-        """Test get_player_details with name search."""
+    async def test_search_players_by_name(self, skip_if_no_credentials, tools, league_id):
+        """Test search_players with name search."""
         # Search for a common name that should return results.
-        result = await tools.get_player_details(league_id, "Smith")
+        result = await tools.search_players(league_id, "Smith")
 
         assert "league_id" in result
         assert result["league_id"] == league_id
@@ -433,8 +433,8 @@ class TestYahooFantasyToolsIntegration:
                 print("\nNo players found matching 'Smith'")
 
     @pytest.mark.asyncio
-    async def test_get_player_details_by_id(self, skip_if_no_credentials, tools, league_id):
-        """Test get_player_details with player ID lookup."""
+    async def test_search_players_by_id(self, skip_if_no_credentials, tools, league_id):
+        """Test search_players with player ID lookup."""
         # First, get free agents to find a valid player ID.
         fa_result = await tools.get_free_agents(league_id, "QB")
 
@@ -444,8 +444,8 @@ class TestYahooFantasyToolsIntegration:
         # Get the first free agent's player_id.
         test_player_id = fa_result["free_agents"][0]["player_id"]
 
-        # Now test get_player_details with this ID.
-        result = await tools.get_player_details(league_id, test_player_id)
+        # Now test search_players with this ID.
+        result = await tools.search_players(league_id, test_player_id)
 
         assert "league_id" in result
         assert result["league_id"] == league_id

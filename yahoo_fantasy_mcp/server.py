@@ -324,7 +324,7 @@ def create_server(
             ),
             Tool(
                 name="search_players",
-                description="Search for players by name",
+                description="Search for players by name or get player details by ID",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -332,12 +332,11 @@ def create_server(
                             "type": "string",
                             "description": "The league ID to search in"
                         },
-                        "search_term": {
-                            "type": "string",
-                            "description": "Player name to search for"
+                        "player": {
+                            "description": "Player search: string for name search (returns up to 25 matches), integer for single player ID, or comma-separated integers for multiple player IDs"
                         }
                     },
-                    "required": ["league_id", "search_term"]
+                    "required": ["league_id", "player"]
                 }
             ),
             Tool(
@@ -370,23 +369,6 @@ def create_server(
                         }
                     },
                     "required": ["league_id"]
-                }
-            ),
-            Tool(
-                name="get_player_details",
-                description="Get detailed information about one or more players by name or ID",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "league_id": {
-                            "type": "string",
-                            "description": "The league ID to query"
-                        },
-                        "player": {
-                            "description": "Player search: string for name search (returns up to 25 matches), integer for single player ID, or comma-separated integers for multiple player IDs"
-                        }
-                    },
-                    "required": ["league_id", "player"]
                 }
             ),
         ]
@@ -465,18 +447,6 @@ def create_server(
                     arguments.get("season")
                 )
             elif name == "search_players":
-                result = await tools.search_players(
-                    arguments["league_id"],
-                    arguments["search_term"]
-                )
-            elif name == "get_free_agents":
-                result = await tools.get_free_agents(
-                    arguments["league_id"],
-                    arguments["position"]
-                )
-            elif name == "get_waivers":
-                result = await tools.get_waivers(arguments["league_id"])
-            elif name == "get_player_details":
                 # Handle player input: can be string (name), int (single ID), or comma-separated ints.
                 player_input = arguments["player"]
                 if isinstance(player_input, str):
@@ -496,7 +466,14 @@ def create_server(
                             player = player_input
                 else:
                     player = player_input
-                result = await tools.get_player_details(arguments["league_id"], player)
+                result = await tools.search_players(arguments["league_id"], player)
+            elif name == "get_free_agents":
+                result = await tools.get_free_agents(
+                    arguments["league_id"],
+                    arguments["position"]
+                )
+            elif name == "get_waivers":
+                result = await tools.get_waivers(arguments["league_id"])
             else:
                 raise ValueError(f"Unknown tool: {name}")
 

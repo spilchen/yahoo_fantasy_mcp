@@ -618,20 +618,40 @@ class YahooFantasyTools:
             }
 
     async def search_players(
-        self, league_id: str, search_term: str
+        self, league_id: str, player: Union[str, int, List[int]]
     ) -> Dict[str, Any]:
-        """Search for players by name.
+        """Search for players by name or get player details by ID.
 
         Args:
-            league_id: The league ID to search in
-            search_term: Player name to search for
+            league_id: The league ID to query
+            player: If a string, searches for players by name (returns up to 25 matches).
+                   If an int, looks up a single player by ID.
+                   If a list of ints, looks up multiple players by their IDs.
 
         Returns:
-            Dictionary containing search results
+            Dictionary containing player details including player_key, player_id, name,
+            position_type, eligible_positions, editorial team info, and more.
+            For name searches, returns a list of matching players.
+            For ID lookups, returns a list of player details.
         """
-        # TODO(SPILLY): Implement using yahoo_fantasy_api.
-        logger.info(f"Searching for players: {search_term} in league: {league_id}")
-        return {"league_id": league_id, "search_term": search_term, "results": []}
+        logger.info(f"Searching for players in league: {league_id}, player: {player}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            player_details = league.player_details(player)
+
+            return {
+                "league_id": league_id,
+                "player": player,
+                "players": player_details
+            }
+        except Exception as e:
+            logger.error(f"Error searching for players in league {league_id}, player {player}: {e}")
+            return {
+                "league_id": league_id,
+                "player": player,
+                "players": [],
+                "error": str(e)
+            }
 
     async def get_free_agents(
         self, league_id: str, position: str
@@ -694,38 +714,3 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
-    async def get_player_details(
-        self, league_id: str, player: Union[str, int, List[int]]
-    ) -> Dict[str, Any]:
-        """Get detailed information about one or more players.
-
-        Args:
-            league_id: The league ID to query
-            player: If a string, searches for players by name (returns up to 25 matches).
-                   If an int, looks up a single player by ID.
-                   If a list of ints, looks up multiple players by their IDs.
-
-        Returns:
-            Dictionary containing player details including player_key, player_id, name,
-            position_type, eligible_positions, editorial team info, and more.
-            For name searches, returns a list of matching players.
-            For ID lookups, returns a list of player details.
-        """
-        logger.info(f"Getting player details for league: {league_id}, player: {player}")
-        try:
-            league = yfa.League(self._oauth, league_id)
-            player_details = league.player_details(player)
-
-            return {
-                "league_id": league_id,
-                "player": player,
-                "players": player_details
-            }
-        except Exception as e:
-            logger.error(f"Error getting player details for league {league_id}, player {player}: {e}")
-            return {
-                "league_id": league_id,
-                "player": player,
-                "players": [],
-                "error": str(e)
-            }

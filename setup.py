@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="yahoo-fantasy-mcp",
+    name="yahoo_fantasy_mcp",
     version="0.1.0",
     author="Matt Spilchen",
     author_email="matt.spilchen@gmail.com",

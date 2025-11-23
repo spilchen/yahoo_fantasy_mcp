@@ -298,6 +298,23 @@ def create_server(
                     "required": ["league_id"]
                 }
             ),
+            Tool(
+                name="get_player_details",
+                description="Get detailed information about one or more players by name or ID",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "league_id": {
+                            "type": "string",
+                            "description": "The league ID to query"
+                        },
+                        "player": {
+                            "description": "Player search: string for name search (returns up to 25 matches), integer for single player ID, or comma-separated integers for multiple player IDs"
+                        }
+                    },
+                    "required": ["league_id", "player"]
+                }
+            ),
         ]
 
     @server.call_tool()
@@ -362,6 +379,27 @@ def create_server(
                 )
             elif name == "get_waivers":
                 result = await tools.get_waivers(arguments["league_id"])
+            elif name == "get_player_details":
+                # Handle player input: can be string (name), int (single ID), or comma-separated ints.
+                player_input = arguments["player"]
+                if isinstance(player_input, str):
+                    # Check if it's a comma-separated list of integers.
+                    if ',' in player_input:
+                        try:
+                            player = [int(x.strip()) for x in player_input.split(',')]
+                        except ValueError:
+                            # Not all integers, treat as name search.
+                            player = player_input
+                    else:
+                        # Try to parse as single integer.
+                        try:
+                            player = int(player_input)
+                        except ValueError:
+                            # Not an integer, treat as name search.
+                            player = player_input
+                else:
+                    player = player_input
+                result = await tools.get_player_details(arguments["league_id"], player)
             else:
                 raise ValueError(f"Unknown tool: {name}")
 

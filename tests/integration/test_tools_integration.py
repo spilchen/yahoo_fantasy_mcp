@@ -399,3 +399,71 @@ class TestYahooFantasyToolsIntegration:
                 print(f"First player on waivers: {first_waiver['name']}")
             else:
                 print("\nNo players currently on waivers.")
+
+    @pytest.mark.asyncio
+    async def test_get_player_details_by_name(self, skip_if_no_credentials, tools, league_id):
+        """Test get_player_details with name search."""
+        # Search for a common name that should return results.
+        result = await tools.get_player_details(league_id, "Smith")
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "player" in result
+        assert result["player"] == "Smith"
+        assert "players" in result
+
+        # If no error, we should have player details.
+        if "error" not in result:
+            players = result["players"]
+            assert isinstance(players, list)
+
+            # Should find at least one player with "Smith" in their name.
+            if len(players) > 0:
+                first_player = players[0]
+                assert "player_id" in first_player
+                assert "name" in first_player
+                assert isinstance(first_player["name"], dict)
+                assert "full" in first_player["name"]
+                assert "player_key" in first_player
+                assert "position_type" in first_player
+
+                print(f"\nSuccessfully found {len(players)} players matching 'Smith'")
+                print(f"First match: {first_player['name']['full']}")
+            else:
+                print("\nNo players found matching 'Smith'")
+
+    @pytest.mark.asyncio
+    async def test_get_player_details_by_id(self, skip_if_no_credentials, tools, league_id):
+        """Test get_player_details with player ID lookup."""
+        # First, get free agents to find a valid player ID.
+        fa_result = await tools.get_free_agents(league_id, "QB")
+
+        if "error" in fa_result or len(fa_result.get("free_agents", [])) == 0:
+            pytest.skip("No free agents available to test with")
+
+        # Get the first free agent's player_id.
+        test_player_id = fa_result["free_agents"][0]["player_id"]
+
+        # Now test get_player_details with this ID.
+        result = await tools.get_player_details(league_id, test_player_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "player" in result
+        assert result["player"] == test_player_id
+        assert "players" in result
+
+        # If no error, we should have exactly one player.
+        if "error" not in result:
+            players = result["players"]
+            assert isinstance(players, list)
+            assert len(players) == 1
+
+            player = players[0]
+            assert "player_id" in player
+            assert int(player["player_id"]) == test_player_id
+            assert "name" in player
+            assert "player_key" in player
+
+            print(f"\nSuccessfully retrieved details for player ID {test_player_id}")
+            print(f"Player name: {player['name']['full']}")

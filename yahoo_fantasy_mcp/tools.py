@@ -1,7 +1,7 @@
 """Tool implementations for Yahoo Fantasy API operations."""
 
 import json
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union, List
 import logging
 
 from yahoo_oauth import OAuth2
@@ -522,5 +522,41 @@ class YahooFantasyTools:
             return {
                 "league_id": league_id,
                 "waivers": [],
+                "error": str(e)
+            }
+
+    async def get_player_details(
+        self, league_id: str, player: Union[str, int, List[int]]
+    ) -> Dict[str, Any]:
+        """Get detailed information about one or more players.
+
+        Args:
+            league_id: The league ID to query
+            player: If a string, searches for players by name (returns up to 25 matches).
+                   If an int, looks up a single player by ID.
+                   If a list of ints, looks up multiple players by their IDs.
+
+        Returns:
+            Dictionary containing player details including player_key, player_id, name,
+            position_type, eligible_positions, editorial team info, and more.
+            For name searches, returns a list of matching players.
+            For ID lookups, returns a list of player details.
+        """
+        logger.info(f"Getting player details for league: {league_id}, player: {player}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            player_details = league.player_details(player)
+
+            return {
+                "league_id": league_id,
+                "player": player,
+                "players": player_details
+            }
+        except Exception as e:
+            logger.error(f"Error getting player details for league {league_id}, player {player}: {e}")
+            return {
+                "league_id": league_id,
+                "player": player,
+                "players": [],
                 "error": str(e)
             }

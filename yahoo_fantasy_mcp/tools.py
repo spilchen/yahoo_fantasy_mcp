@@ -285,6 +285,34 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_stat_categories(self, league_id: str) -> Dict[str, Any]:
+        """Get the stat categories tracked in the league.
+
+        Args:
+            league_id: The league ID to query
+
+        Returns:
+            Dictionary containing a list of stat categories. Each entry has
+            display_name (e.g., 'R', 'HR', 'W') and position_type (e.g., 'B' for
+            batter, 'P' for pitcher).
+        """
+        logger.info(f"Getting stat categories for league: {league_id}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            stat_categories = league.stat_categories()
+
+            return {
+                "league_id": league_id,
+                "stat_categories": stat_categories
+            }
+        except Exception as e:
+            logger.error(f"Error getting stat categories for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "stat_categories": [],
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

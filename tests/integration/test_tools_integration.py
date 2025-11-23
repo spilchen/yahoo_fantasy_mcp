@@ -225,6 +225,33 @@ class TestYahooFantasyToolsIntegration:
             print(f"Scoring type: {settings.get('scoring_type')}")
 
     @pytest.mark.asyncio
+    async def test_get_stat_categories(self, skip_if_no_credentials, tools, league_id):
+        """Test get_stat_categories with real API."""
+        result = await tools.get_stat_categories(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "stat_categories" in result
+
+        # If no error, we should have stat categories data.
+        if "error" not in result:
+            stat_categories = result["stat_categories"]
+            assert stat_categories is not None
+            assert isinstance(stat_categories, list)
+
+            # Verify that at least one stat category exists.
+            assert len(stat_categories) > 0
+
+            # Verify structure of stat categories.
+            for stat in stat_categories:
+                assert isinstance(stat, dict)
+                assert "display_name" in stat
+                assert "position_type" in stat
+
+            print(f"\nSuccessfully retrieved {len(stat_categories)} stat categories")
+            print(f"Sample stats: {[s['display_name'] for s in stat_categories[:5]]}")
+
+    @pytest.mark.asyncio
     async def test_get_free_agents(self, skip_if_no_credentials, tools, league_id):
         """Test get_free_agents with real API."""
         # Test with QB position.

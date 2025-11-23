@@ -467,3 +467,50 @@ class TestYahooFantasyToolsIntegration:
 
             print(f"\nSuccessfully retrieved details for player ID {test_player_id}")
             print(f"Player name: {player['name']['full']}")
+
+    @pytest.mark.asyncio
+    async def test_get_player_stats(self, skip_if_no_credentials, tools, league_id):
+        """Test get_player_stats with real API."""
+        # First, get free agents to find a valid player ID.
+        fa_result = await tools.get_free_agents(league_id, "G")
+
+        if "error" in fa_result or len(fa_result.get("free_agents", [])) == 0:
+            pytest.skip("No free agents available to test with")
+
+        # Get the first free agent's player_id.
+        test_player_id = fa_result["free_agents"][0]["player_id"]
+
+        # Test with season stats.
+        result = await tools.get_player_stats(league_id, [test_player_id], "season")
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "player_ids" in result
+        assert result["player_ids"] == [test_player_id]
+        assert "req_type" in result
+        assert result["req_type"] == "season"
+        assert "stats" in result
+
+        # If no error, we should have stats data.
+        if "error" not in result:
+            stats = result["stats"]
+            assert isinstance(stats, list)
+
+            # Should have stats for the one player we requested.
+            if len(stats) > 0:
+                player_stat = stats[0]
+                assert "player_id" in player_stat
+                assert player_stat["player_id"] == test_player_id
+                assert "name" in player_stat
+                assert "position_type" in player_stat
+                # Stats will vary by sport, but should have some statistical fields.
+
+                print(f"\nSuccessfully retrieved season stats for player ID {test_player_id}")
+                print(f"Player name: {player_stat['name']}")
+                print(f"Position: {player_stat['position_type']}")
+                # Print a few sample stat fields if available.
+                stat_keys = [k for k in player_stat.keys() if k not in ['player_id', 'name', 'position_type']]
+                if stat_keys:
+                    print(f"Sample stats: {stat_keys[:5]}")
+            else:
+                print(f"\nNo stats available for player ID {test_player_id}")

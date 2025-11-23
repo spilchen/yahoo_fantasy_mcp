@@ -236,16 +236,36 @@ def create_server(
             ),
             Tool(
                 name="get_player_stats",
-                description="Get statistics for a specific player",
+                description="Get statistics for one or more players for a specified time period",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "player_key": {
+                        "league_id": {
                             "type": "string",
-                            "description": "The player key to query"
+                            "description": "The league ID to query"
+                        },
+                        "player_ids": {
+                            "type": "string",
+                            "description": "Comma-separated list of Yahoo! player IDs"
+                        },
+                        "req_type": {
+                            "type": "string",
+                            "description": "Stats time range: 'season', 'average_season', 'lastweek', 'lastmonth', 'date', 'week'"
+                        },
+                        "date": {
+                            "type": "string",
+                            "description": "Date for stats (YYYY-MM-DD format, used with req_type='date')"
+                        },
+                        "week": {
+                            "type": "integer",
+                            "description": "Week number (used with req_type='week')"
+                        },
+                        "season": {
+                            "type": "integer",
+                            "description": "Season year (used with req_type='season')"
                         }
                     },
-                    "required": ["player_key"]
+                    "required": ["league_id", "player_ids", "req_type"]
                 }
             ),
             Tool(
@@ -366,7 +386,17 @@ def create_server(
                     arguments.get("week")
                 )
             elif name == "get_player_stats":
-                result = await tools.get_player_stats(arguments["player_key"])
+                # Parse comma-separated player IDs into list of integers.
+                player_ids_str = arguments["player_ids"]
+                player_ids = [int(x.strip()) for x in player_ids_str.split(',')]
+                result = await tools.get_player_stats(
+                    arguments["league_id"],
+                    player_ids,
+                    arguments["req_type"],
+                    arguments.get("date"),
+                    arguments.get("week"),
+                    arguments.get("season")
+                )
             elif name == "search_players":
                 result = await tools.search_players(
                     arguments["league_id"],

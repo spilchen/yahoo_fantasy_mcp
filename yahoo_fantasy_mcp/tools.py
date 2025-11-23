@@ -1,6 +1,7 @@
 """Tool implementations for Yahoo Fantasy API operations."""
 
 import json
+import datetime
 from typing import Optional, Dict, Any, Union, List
 import logging
 
@@ -413,11 +414,24 @@ class YahooFantasyTools:
             team_key: The team key to query
 
         Returns:
-            Dictionary containing team roster data
+            Dictionary containing team roster data including player details, positions, and status.
         """
-        # TODO(SPILLY): Implement using yahoo_fantasy_api.
         logger.info(f"Getting roster for team: {team_key}")
-        return {"team_key": team_key, "roster": []}
+        try:
+            team = yfa.Team(self._oauth, team_key)
+            roster = team.roster()
+
+            return {
+                "team_key": team_key,
+                "roster": roster
+            }
+        except Exception as e:
+            logger.error(f"Error getting roster for team {team_key}: {e}")
+            return {
+                "team_key": team_key,
+                "roster": [],
+                "error": str(e)
+            }
 
     async def get_matchup_scores(
         self, team_key: str, week: Optional[int] = None
@@ -435,18 +449,68 @@ class YahooFantasyTools:
         logger.info(f"Getting matchup scores for team: {team_key}, week: {week}")
         return {"team_key": team_key, "week": week, "matchup": {}}
 
-    async def get_player_stats(self, player_key: str) -> Dict[str, Any]:
-        """Get statistics for a specific player.
+    async def get_player_stats(
+        self,
+        league_id: str,
+        player_ids: List[int],
+        req_type: str,
+        date: Optional[str] = None,
+        week: Optional[int] = None,
+        season: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """Get statistics for a list of players.
 
         Args:
-            player_key: The player key to query
+            league_id: The league ID to query
+            player_ids: List of Yahoo! player IDs to get stats for
+            req_type: Defines the date range for stats. Valid values:
+                     'season', 'average_season', 'lastweek', 'lastmonth', 'date', 'week'.
+                     'season' returns stats for a given season (specified by season parameter).
+                     'date' returns stats for a single date (specified by date parameter).
+                     'week' returns stats for a single week (specified by week parameter).
+                     'last*' types return stats for a time frame relative to current.
+            date: When requesting stats for a single date, this identifies the date.
+                 Format: YYYY-MM-DD string. If None and req_type is 'date', returns current date stats.
+            week: NFL ONLY: When requesting stats for a week, this identifies the week.
+            season: When requesting stats for a season, this identifies the season.
+                   If None and requesting season stats, returns current season stats.
 
         Returns:
-            Dictionary containing player statistics
+            Dictionary containing player stats. Each entry in the stats list has
+            player_id, name, position_type, and stat values (e.g., GP, G, A, PTS, etc.).
         """
-        # TODO(SPILLY): Implement using yahoo_fantasy_api.
-        logger.info(f"Getting stats for player: {player_key}")
-        return {"player_key": player_key, "stats": {}}
+        logger.info(f"Getting player stats for league: {league_id}, players: {player_ids}, type: {req_type}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+
+            # Convert date string to datetime.date if provided.
+            date_obj = None
+            if date:
+                date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+
+            stats = league.player_stats(player_ids, req_type, date=date_obj, week=week, season=season)
+
+            return {
+                "league_id": league_id,
+                "player_ids": player_ids,
+                "req_type": req_type,
+                "date": date,
+                "week": week,
+                "season": season,
+                "stats": stats
+            }
+        except Exception as e:
+            logger.error(f"Error getting player stats for league {league_id}, players {player_ids}: {e}")
+            return {
+                "league_id": league_id,
+                "player_ids": player_ids,
+                "req_type": req_type,
+                "date": date,
+                "week": week,
+                "season": season,
+                "stats": [],
+                "error": str(e)
+            }
 
     async def search_players(
         self, league_id: str, search_term: str

@@ -233,14 +233,39 @@ Note: When run standalone without an MCP client, the server will wait for JSON-R
 
 ## Available Tools
 
-The MCP server exposes the following tools:
+The MCP server exposes the following tools for read-only access to Yahoo Fantasy data:
 
-- `get_league_standings` - Get current standings for a league
-- `get_team_roster` - Get roster for a specific team
-- `get_matchup_scores` - Get scores for current/specific matchup
-- `get_player_stats` - Get statistics for a player
-- `search_players` - Search for players by name
-- `get_free_agents` - Get available free agents
+### League Information
+- `get_team_key` - Get the team key for the logged in user's team in a league
+- `get_current_week` - Get the current week number of the league
+- `get_edit_date` - Get the next date when lineups can be edited (roster deadline)
+- `get_end_week` - Get the ending week number of the league season
+- `get_settings` - Get comprehensive league settings (scoring, playoff, waiver, trade settings)
+- `get_positions` - Get the positions used in the league with their counts and types
+- `get_stat_categories` - Get the stat categories tracked in the league
+- `get_teams` - Get details of all teams in the league
+- `get_league_standings` - Get current standings for a fantasy league
+
+### Matchups & Scoring
+- `get_matchups` - Get matchup data for a given week (defaults to current week)
+- `get_matchup_scores` - Get scores for current or specific matchup with team stats
+
+### Team Management
+- `get_team_roster` - Get roster for a specific team for a given week or date
+- `get_team_details` - Get detailed information about a specific team
+- `get_team_matchup` - Get the opponent team key for a team's matchup in a given week
+- `get_team_proposed_trades` - Get proposed trades that include the team (both offered and received)
+
+### Player Information
+- `search_players` - Search for players by name or get player details by ID
+- `get_player_stats` - Get statistics for one or more players for a specified time period
+- `get_free_agents` - Get available free agents in a league for a specific position
+- `get_waivers` - Get players currently on waivers in the league
+
+### Transactions
+- `get_transactions` - Get league transactions (adds, drops, trades, commish moves)
+
+**Note:** This server provides read-only access. No write operations (roster changes, trades, lineup modifications) are implemented for safety.
 
 ## Development
 
@@ -285,8 +310,10 @@ yahoo_fantasy_mcp/
 │   └── tools.py           # Tool implementations
 ├── tests/
 │   ├── __init__.py
-│   ├── test_server.py
-│   └── test_tools.py
+│   └── integration/       # Integration tests with real API
+│       ├── __init__.py
+│       ├── test_tools_integration.py
+│       └── test_get_team_roster.py
 ├── README.md
 ├── setup.py
 ├── requirements.txt

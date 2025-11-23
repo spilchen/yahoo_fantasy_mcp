@@ -257,6 +257,34 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_settings(self, league_id: str) -> Dict[str, Any]:
+        """Get the league settings.
+
+        Args:
+            league_id: The league ID to query
+
+        Returns:
+            Dictionary containing comprehensive league settings including league_key,
+            name, draft_status, num_teams, scoring_type, playoff settings, waiver
+            settings, trade settings, and more.
+        """
+        logger.info(f"Getting settings for league: {league_id}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            settings = league.settings()
+
+            return {
+                "league_id": league_id,
+                "settings": settings
+            }
+        except Exception as e:
+            logger.error(f"Error getting settings for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "settings": None,
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

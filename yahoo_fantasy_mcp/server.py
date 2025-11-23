@@ -125,6 +125,20 @@ def create_server(
                 }
             ),
             Tool(
+                name="get_settings",
+                description="Get comprehensive league settings including scoring, playoff, waiver, and trade settings",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "league_id": {
+                            "type": "string",
+                            "description": "The league ID to query"
+                        }
+                    },
+                    "required": ["league_id"]
+                }
+            ),
+            Tool(
                 name="get_league_standings",
                 description="Get current standings for a fantasy league",
                 inputSchema={
@@ -249,6 +263,8 @@ def create_server(
                 )
             elif name == "get_positions":
                 result = await tools.get_positions(arguments["league_id"])
+            elif name == "get_settings":
+                result = await tools.get_settings(arguments["league_id"])
             elif name == "get_league_standings":
                 result = await tools.get_league_standings(arguments["league_id"])
             elif name == "get_team_roster":

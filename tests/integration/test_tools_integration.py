@@ -197,6 +197,34 @@ class TestYahooFantasyToolsIntegration:
             print(f"Sample positions: {list(positions.keys())[:5]}")
 
     @pytest.mark.asyncio
+    async def test_get_settings(self, skip_if_no_credentials, tools, league_id):
+        """Test get_settings with real API."""
+        result = await tools.get_settings(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "settings" in result
+
+        # If no error, we should have settings data.
+        if "error" not in result:
+            settings = result["settings"]
+            assert settings is not None
+            assert isinstance(settings, dict)
+
+            # Verify common settings fields exist.
+            assert "league_key" in settings
+            assert "name" in settings
+            assert "num_teams" in settings
+            assert "scoring_type" in settings
+            assert "game_code" in settings
+            assert "season" in settings
+
+            print(f"\nSuccessfully retrieved league settings")
+            print(f"League name: {settings.get('name')}")
+            print(f"Number of teams: {settings.get('num_teams')}")
+            print(f"Scoring type: {settings.get('scoring_type')}")
+
+    @pytest.mark.asyncio
     async def test_get_free_agents(self, skip_if_no_credentials, tools, league_id):
         """Test get_free_agents with real API."""
         # Test with QB position.

@@ -313,6 +313,35 @@ class YahooFantasyTools:
                 "error": str(e)
             }
 
+    async def get_teams(self, league_id: str) -> Dict[str, Any]:
+        """Get details of all teams in the league.
+
+        Args:
+            league_id: The league ID to query
+
+        Returns:
+            Dictionary containing teams data. Each team key maps to team details
+            including team_key, team_id, name, is_owned_by_current_login, url,
+            waiver_priority, number_of_moves, number_of_trades, roster_adds,
+            clinched_playoffs, managers, and more.
+        """
+        logger.info(f"Getting teams for league: {league_id}")
+        try:
+            league = yfa.League(self._oauth, league_id)
+            teams = league.teams()
+
+            return {
+                "league_id": league_id,
+                "teams": teams
+            }
+        except Exception as e:
+            logger.error(f"Error getting teams for league {league_id}: {e}")
+            return {
+                "league_id": league_id,
+                "teams": {},
+                "error": str(e)
+            }
+
     async def get_league_standings(self, league_id: str) -> Dict[str, Any]:
         """Get current standings for a fantasy league.
 

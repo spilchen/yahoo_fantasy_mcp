@@ -252,6 +252,37 @@ class TestYahooFantasyToolsIntegration:
             print(f"Sample stats: {[s['display_name'] for s in stat_categories[:5]]}")
 
     @pytest.mark.asyncio
+    async def test_get_teams(self, skip_if_no_credentials, tools, league_id):
+        """Test get_teams with real API."""
+        result = await tools.get_teams(league_id)
+
+        assert "league_id" in result
+        assert result["league_id"] == league_id
+        assert "teams" in result
+
+        # If no error, we should have teams data.
+        if "error" not in result:
+            teams = result["teams"]
+            assert teams is not None
+            assert isinstance(teams, dict)
+
+            # Verify that at least one team exists.
+            assert len(teams) > 0
+
+            # Verify structure of teams - get first team.
+            first_team_key = list(teams.keys())[0]
+            first_team = teams[first_team_key]
+
+            assert isinstance(first_team, dict)
+            assert "team_key" in first_team
+            assert "team_id" in first_team
+            assert "name" in first_team
+            # is_owned_by_current_login is optional.
+
+            print(f"\nSuccessfully retrieved {len(teams)} teams")
+            print(f"Sample team: {first_team.get('name')} (key: {first_team_key})")
+
+    @pytest.mark.asyncio
     async def test_get_free_agents(self, skip_if_no_credentials, tools, league_id):
         """Test get_free_agents with real API."""
         # Test with QB position.

@@ -153,6 +153,20 @@ def create_server(
                 }
             ),
             Tool(
+                name="get_teams",
+                description="Get details of all teams in the league including roster management stats and managers",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "league_id": {
+                            "type": "string",
+                            "description": "The league ID to query"
+                        }
+                    },
+                    "required": ["league_id"]
+                }
+            ),
+            Tool(
                 name="get_league_standings",
                 description="Get current standings for a fantasy league",
                 inputSchema={
@@ -281,6 +295,8 @@ def create_server(
                 result = await tools.get_settings(arguments["league_id"])
             elif name == "get_stat_categories":
                 result = await tools.get_stat_categories(arguments["league_id"])
+            elif name == "get_teams":
+                result = await tools.get_teams(arguments["league_id"])
             elif name == "get_league_standings":
                 result = await tools.get_league_standings(arguments["league_id"])
             elif name == "get_team_roster":
